@@ -1,7 +1,7 @@
 import React from "react";
 
 import App from "./App";
-
+import {requiresAuth,requiresAuthOrEmail,requiresNoAuth} from './routers'
 import {
   BrowserRouter as Router,
   Route,
@@ -41,7 +41,7 @@ import IntegrationList from "./App";
 import TaskPay from "./App";
 import Participation from "./App";
 import RateDevelopers from "./App";
-import UserPage from "./App";
+import UserPage from "./Components/EstimateContainer";
 import UserList from "./App";
 import User from "./App";
 import InviteDeveloper from "./App";
@@ -61,10 +61,10 @@ import ProfilePicture from "./App";
 import PasswordChangeForm from "./App";
 import ProfileType from "./App";
 import PaymentList from "./App";
-import SupportPage from "./App";
+import SupportPage from "./Components/EstimateContainer";
 import SupportSectionList from "./App";
 import SupportPageDetail from "./App";
-import SearchPage from "./App";
+import SearchPage from "./Components/EstimateContainer";
 import SupportPageList from "./App";
 import EstimateDetailContainer from "./Components/EstimateDetailContainer";
 import EstimateContainer from "./Components/EstimateContainer";
@@ -93,46 +93,44 @@ function generateUrl(childUrl, parentUrl, params = {}) {
   return url.replace("//", "/");
 }
 const NestedComponent = props => {
-  const component2 = props.path === "" && props.to ? Div : Switch;
   return (
     <Switch>
       {props.children.map((child, index) => {
         const new_route = generateUrl(child.path, props.path);
-        console.log(props.path);
-        // if(child.path === "" && chil)
+
         if (child.to) {
           return (
             <RenderRouteComponent
               path={new_route}
               render={({ match: { params }, location: { pathname } }) => {
                 let uuu = generateUrl(child.to, props.path, params);
-                // debugger;
-                // if (uuu !== pathname) {
                 return <Redirect to={uuu} />;
-                // }
-                // return <child.component path=
               }}
             />
           );
         }
         if (child.children) {
           // debugger;
-          const { path, ...rest } = child;
-          // if (props.parent){
-          //   return
-          // }
+          const { path, children, parent, ...rest } = child;
+          const Parent = parent;
+          const rrr = new_route.replace("//", "/");
+
           return (
             <RenderRouteComponent
-              path={new_route.replace("//", "/")}
+              path={rrr}
               exact={false}
-              render={({ match }) => (
-                <props.parent name={child.name}>
-                  <NestedComponent
-                    path={new_route.replace("//", "/")}
-                    {...rest}
-                  />
-                </props.parent>
-              )}
+              render={({ match }) => {
+                console.log(child);
+                return (
+                  <Parent {...rest}>
+                    <NestedComponent
+                      children={children}
+                      parent={Div}
+                      path={rrr}
+                    />
+                  </Parent>
+                );
+              }}
             />
           );
         }
@@ -160,82 +158,185 @@ const RenderRouteComponent = props => {
 };
 
 const regularRoutes = [];
-const WrappedComponent = ({ base_url = "" }) => {
-  return (
-    <AppWrapper>
-      <Switch>
-        {authRoutes.map((url2, index) => {
-          const { path, ...rest } = url2;
-          const full_url = generateUrl(path, base_url);
-          if (rest.children) {
-            return <NestedComponent path={full_url} {...rest} />;
-          }
-          return <RenderRouteComponent path={full_url} {...rest} />;
-        })}
-      </Switch>
-    </AppWrapper>
-  );
-};
+
 const Div = props => <div {...props} />;
-const AuthComponent = ({ base_url = "" }) => {
-  const unauthorized_urls = [
+
+class Div2 extends React.Component{
+  componentDidMount(){
+    const result = requiresNoAuth(this.props.routes);
+    debugger;
+  }
+  render(){
+    return <div>{this.props.children}</div>
+  }
+}
+const TungeRoute = ({ base_url = "", routes }) => (
+  <Div2 base_path={generateUrl("", base_url)} routes={routes}>
+    <NestedComponent
+      parent={Div}
+      path={generateUrl("", base_url)}
+      children={routes}
+    />
+  </Div2>
+);
+
+export default () => {
+  const unauthorized_urls2 = [
+    { path: "", component: LandingPage, unauthedOnly: true },
+    { path: "agreement", component: Agreement },
+    { path: "privacy", component: PrivacyPolicy },
+    { path: "code-of-conduct", component: CodeOfConduct },
     {
-      path: "",
-      parent: Div,
+      path: "welcome",
+      exact: true,
+      component: TaskWizardLander,
+      unauthedOnly: true
+    },
+    { path: "welcome/:skill", component: TaskWizardLander, unauthedOnly: true },
+    { path: "quiz", exact: true, component: QuizForm, unauthedOnly: true },
+    { path: "quiz/*", exact: true, component: QuizForm, unauthedOnly: true },
+    {
+      path: "developer/profile",
+      exact: true,
+      component: DeveloperProfile,
+      unauthedOnly: true
+    },
+    {
+      path: "developer/profile/*",
+      exact: true,
+      component: DeveloperProfile,
+      unauthedOnly: true
+    },
+    { path: "start", exact: true, component: TaskWizard, unauthedOnly: true },
+    {
+      path: "start/:phase/:taskId",
+      exact: true,
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    {
+      path: "start/:phase/:taskId/*",
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    { path: "start/*", component: TaskWizard, unauthedOnly: true },
+    {
+      path: "start-welcome",
+      exact: true,
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    {
+      path: "start-welcome/:phase/:taskId",
+      exact: true,
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    {
+      path: "start-welcome/:phase/:taskId/*",
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    { path: "start-welcome/*", component: TaskWizard, unauthedOnly: true },
+    {
+      path: "start-outsource",
+      exact: true,
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    {
+      path: "start-outsource/:phase/:taskId",
+      exact: true,
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    {
+      path: "start-outsource/:phase/:taskId/*",
+      component: TaskWizard,
+      unauthedOnly: true
+    },
+    { path: "start-outsource/*", component: TaskWizard, unauthedOnly: true },
+    {
+      path: "call",
+      component: LandingPage,
+      unauthedOnly: true,
+      showCallWidget: true
+    },
+    { path: "our-story", component: StoryPage, unauthedOnly: true },
+    { path: "quality", component: QualityPage, unauthedOnly: true },
+    { path: "pricing", component: PricingPage, unauthedOnly: true },
+    { path: "press", component: LandingPage, unauthedOnly: true },
+    { path: "FAQ", component: LandingPage, unauthedOnly: true },
+    { path: "signin", component: SignInPage, unauthedOnly: true },
+    { path: "signup", exact: true, to: "signin", unauthedOnly: true },
+    { path: "signup/project-owner", component: SignUpPage, unauthedOnly: true },
+    {
+      path: "signup/invite/:invitationKey",
+      component: SignUpPage,
+      unauthedOnly: true
+    },
+    {
+      path: "signup/developer/invite/:invitationKey",
+      component: SignUpPage,
+      unauthedOnly: true
+    },
+    {
+      path: "signup/developer/:confirmationKey",
+      component: SignUpPage,
+      unauthedOnly: true
+    },
+    {
+      path: "reset-password",
+      exact: true,
+      component: PasswordResetPage,
+      unauthedOnly: true
+    },
+    {
+      path: "reset-password/confirm/:uid/:token",
+      component: PasswordResetConfirmPage,
+      unauthedOnly: true
+    },
+    {
+      path: "people",
+      parent: UserPage,
       children: [
-        { path: "welcome", exact: true, component: TaskWizardLander },
-        { path: "welcome/:skill", component: TaskWizardLander },
-        { path: "quiz", exact: true, component: QuizForm },
-        { path: "quiz/*", exact: true, component: QuizForm },
-        { path: "developer/profile", exact: true, component: DeveloperProfile },
-        {
-          path: "developer/profile/*",
-          exact: true,
-          component: DeveloperProfile
-        },
-        { path: "start", exact: true, component: TaskWizard },
-        { path: "start/:phase/:taskId", exact: true, component: TaskWizard },
-        { path: "start/:phase/:taskId/*", component: TaskWizard },
-        { path: "start/*", component: TaskWizard },
-        { path: "start-welcome", exact: true, component: TaskWizard },
-        {
-          path: "start-welcome/:phase/:taskId",
-          exact: true,
-          component: TaskWizard
-        },
-        { path: "start-welcome/:phase/:taskId/*", component: TaskWizard },
-        { path: "start-welcome/*", component: TaskWizard },
-        { path: "start-outsource", exact: true, component: TaskWizard },
-        {
-          path: "start-outsource/:phase/:taskId",
-          exact: true,
-          component: TaskWizard
-        },
-        { path: "start-outsource/:phase/:taskId/*", component: TaskWizard },
-        { path: "start-outsource/*", component: TaskWizard },
-        { path: "call", component: LandingPage },
-        { path: "our-story", component: StoryPage },
-        { path: "quality", component: QualityPage },
-        { path: "pricing", component: PricingPage },
-        { path: "press", component: LandingPage },
-        { path: "FAQ", component: LandingPage },
-        { path: "signin", component: SignInPage },
-        { path: "signup", exact: true, to: "signin" },
-        { path: "signup/project-owner", component: SignUpPage },
-        { path: "signup/invite/:invitationKey", component: SignUpPage },
-        {
-          path: "signup/developer/invite/:invitationKey",
-          component: SignUpPage
-        },
-        { path: "signup/developer/:confirmationKey", component: SignUpPage },
-        { path: "reset-password", exact: true, component: PasswordResetPage },
-        {
-          path: "reset-password/confirm/:uid/:token",
-          component: PasswordResetConfirmPage
-        }
+        { path: "filter/:filter", component: UserList },
+        { path: "skill/:skill(/:filter)", component: UserList },
+        { path: "invite", component: InviteDeveloper },
+        { path: ":userId", component: User },
+        { path: "", to: "filter/developers" }
+      ]
+    },
+    { path: "member", exact: false, to: "people" },
+    {
+      path: "support",
+      parent: SupportPage,
+      children: [
+        { path: "", exact: true, component: SupportSectionList },
+        { path: ":section", exact: true, component: SupportPageList },
+        { path: "tag/:tag", exact: true, component: SupportPageList },
+        { path: ":page", exact: true, component: SupportPageDetail }
       ]
     },
     {
+      path: "search",
+      parent: SearchPage,
+      children: [
+        { path: "people", component: UserList },
+        { path: "developers", component: UserList },
+        { path: "tasks", component: TaskList },
+        { path: "messages", component: MessageList },
+        { path: "support", component: SupportPageList },
+        { path: "", exact: true, to: "people" }
+      ]
+    },
+    {
+      path: "customer/help/:chatId",
+      component: LandingPage,
+      unauthedOnly: true
+    },
+    {
+      authedOrEmailOnly: true,
       parent: AppWrapper,
       path: "",
       children: [
@@ -270,11 +371,7 @@ const AuthComponent = ({ base_url = "" }) => {
               path: "",
               children: [
                 { path: "edit", component: EstimateForm },
-                {
-                  path: ":estimateId",
-                  exact: true,
-                  component: EstimateDetail
-                }
+                { path: ":estimateId", exact: true, component: EstimateDetail }
               ]
             }
           ]
@@ -297,10 +394,7 @@ const AuthComponent = ({ base_url = "" }) => {
                 { path: "edit", exact: true, component: TaskForm },
                 { path: "edit/participation", component: TaskForm },
                 { path: "edit/payment-approval", component: TaskForm },
-                {
-                  path: "edit/:editSection",
-                  component: EditTaskSectionForm
-                },
+                { path: "edit/:editSection", component: EditTaskSectionForm },
                 { path: "edit/*", component: TaskForm },
                 { path: "apply", component: ApplicationForm },
                 {
@@ -312,15 +406,8 @@ const AuthComponent = ({ base_url = "" }) => {
                       parent: EstimateDetailContainer,
                       path: "",
                       children: [
-                        {
-                          path: "",
-                          exact: true,
-                          to: "new"
-                        },
-                        {
-                          path: "edit",
-                          component: EstimateForm
-                        },
+                        { path: "", exact: true, to: "new" },
+                        { path: "edit", component: EstimateForm },
                         {
                           path: ":estimateId",
                           exact: true,
@@ -446,113 +533,24 @@ const AuthComponent = ({ base_url = "" }) => {
         }
       ]
     },
-    {
-      path: "people",
-      parent: UserPage,
-      children: [
-        { path: "", exact: true, redirect: "filter/developers" },
-        { path: "filter/:filter", component: UserList },
-        { path: "skill/:skill(/:filter)", component: UserList },
-        { path: "invite", component: InviteDeveloper },
-        { path: ":userId", component: User }
-      ]
-    },
-    { path: "member*", to: "people*" },
-    {
-      path: "support",
-      parent: SupportPage,
-      children: [
-        { path: "", exact: true, component: SupportSectionList },
-        { path: ":section", exact: true, component: SupportPageList },
-        { path: "tag/:tag", exact: true, component: SupportPageList },
-        { path: ":page", exact: true, component: SupportPageDetail }
-      ]
-    },
-    {
-      path: "search",
-      parent: SearchPage,
-      children: [
-        { path: "", exact: true, to: "people" },
-        { path: "people", component: UserList },
-        { path: "developers", component: UserList },
-        { path: "tasks", component: TaskList },
-        { path: "messages", component: MessageList },
-        { path: "support", component: SupportPageList }
-      ]
-    },
-    {
-      path: "customer/help/:chatId",
-      component: LandingPage
-    }
+    { path: ":skill", component: LandingPage, unauthedOnly: true },
+    { path: "*", exact: false, to: "home" }
   ];
   return (
-    <Switch>
-      {unauthorized_urls.map((url2, index) => {
-        const { path, ...rest } = url2;
-        const full_url = generateUrl(path, base_url);
-        if (rest.children) {
-          return <NestedComponent path={full_url} {...rest} />;
-        }
-        return <RenderRouteComponent path={full_url} {...rest} />;
-      })}
-    </Switch>
-    // <Switch>
-    //   {/* {unauthorized_urls.map((url, index) => {
-    //     let props = url;
-    //     if (props.path) {
-    //       props.path = `${generateUrl(url.path, base_url)}`;
-    //     }
-    //     let Component = Route;
-    //     if (!!url.component === false) {
-    //       Component = Redirect;
-    //     }
-    //     return <Component key={index} {...props} exact />;
-    //   })} */}
-    //   <WrappedComponent base_url={base_url} />
-    // </Switch>
-  );
-};
-export const TungeRoute = ({ base_route = "" }) => {
-  return (
-    <Switch>
-      <Route
-        exact
-        path={`${generateUrl("", base_route)}`}
-        component={LandingPage}
-        unauthedOnly={true}
-      />
-      <Route
-        exact
-        path={`${generateUrl("agreement", base_route)}`}
-        component={Agreement}
-      />
-      <Route
-        exact
-        path={`${generateUrl("privacy", base_route)}`}
-        component={PrivacyPolicy}
-      />
-      <Route
-        exact
-        path={`${generateUrl("code-of-conduct", base_route)}`}
-        component={CodeOfConduct}
-      />
-      <AuthComponent base_url={base_route} />
-      <Route
-        path={`${generateUrl(":skill", base_route)}`}
-        component={LandingPage}
-      />
-      <Redirect path="*" to="home" />
-    </Switch>
-  );
-};
-
-export default () => {
-  return (
     <Router>
-      <div>
-        {/* <TungeRoute base_route="/tunga" /> */}
-        <TungeRoute base_route="" />
-      </div>
+      <Switch>
+        <Route
+          path="/tunga"
+          render={() => (
+            <TungeRoute routes={unauthorized_urls2} base_url="/tunga" />
+          )}
+        />
+        <Route
+          path="/"
+          render={() => <TungeRoute routes={unauthorized_urls2} />}
+        />
+      </Switch>
     </Router>
   );
 };
+
